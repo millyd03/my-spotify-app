@@ -1,7 +1,7 @@
 from library.auth import Auth
 import yaml
 
-config_file = "/Users/dmilhous/PycharmProjects/mySpotifyApp/config.yml"
+config_file = "../config/config.yml"
 
 with open(config_file, "r") as file:
     config_data = yaml.safe_load(file)
