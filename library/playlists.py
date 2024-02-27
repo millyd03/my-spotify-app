@@ -5,14 +5,15 @@ class Playlists:
 
     def get_my_playlists(self):
         all_results = []
+        page_size = 50
 
-        response = self.sp.current_user_playlists(20, 0)
+        response = self.sp.current_user_playlists(page_size, 0)
         all_results.extend(response["items"])
         total_count = response["total"]
-        offset = 20
-        if total_count > 20:
+        offset = page_size
+        if total_count > page_size:
             for i in range(total_count):
-                response = self.sp.current_user_saved_shows(20, offset)
+                response = self.sp.current_user_playlists(page_size, offset)
 
                 all_results.extend(response["items"])
 
@@ -20,7 +21,7 @@ class Playlists:
                 if not next_page_url:
                     break
 
-                offset += 20
+                offset += page_size
 
         return all_results
 

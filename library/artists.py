@@ -6,6 +6,7 @@ class Artists:
     def get_my_followed_artists(self):
         all_results = []
         last_artist_id = None
+
         while True:
             response = self.sp.current_user_followed_artists(50, last_artist_id)
 
