@@ -1,4 +1,4 @@
-from library import util
+from utility import util
 
 
 def get_random_song(songs, artist_name):

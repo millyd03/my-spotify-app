@@ -48,3 +48,39 @@ class Podcasts:
                 results.append(response["items"][i])
 
         return results
+
+    def get_all_podcast_episodes(self, podcast_id, market="US"):
+        all_results = []
+        page_size = 50
+
+        response = self.sp.show_episodes(podcast_id, page_size, 0, market)
+        all_results.extend(response["items"])
+        total_count = response["total"]
+        offset = page_size
+        if total_count > page_size:
+            for i in range(total_count):
+                response = self.sp.show_episodes(podcast_id, page_size, offset, market)
+
+                all_results.extend(response["items"])
+
+                next_page_url = response.get('next', None)
+                if not next_page_url:
+                    break
+
+                offset += page_size
+
+        return all_results
+
+    def get_podcast_oldest_unplayed_episode(self, podcast_id, market="US"):
+        all_episodes = self.get_all_podcast_episodes(podcast_id, market)
+        all_episodes.reverse()
+        found_episode = None
+
+        for idx, episode in enumerate(all_episodes):
+            if not episode["resume_point"]["fully_played"]:
+                found_episode = episode
+                break
+
+        return found_episode
+
+

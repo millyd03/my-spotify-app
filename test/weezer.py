@@ -1,4 +1,4 @@
-from library.auth import Auth
+from utility.auth import Auth
 import yaml
 
 config_file = "../config/config.yml"
