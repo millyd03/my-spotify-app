@@ -47,7 +47,7 @@ class Auth:
         auth_manager = SpotifyOAuth(client_id=self.client_id,
                                     client_secret=self.client_secret,
                                     redirect_uri=self.redirect_uri,
-                                    scope="user-read-private user-read-email user-follow-read user-utility-read playlist-modify-public playlist-modify-private user-read-playback-position")
+                                    scope="user-read-private user-read-email user-follow-read playlist-modify-public playlist-modify-private user-read-playback-position")
 
         try:
             sp = spotipy.Spotify(auth_manager=auth_manager)

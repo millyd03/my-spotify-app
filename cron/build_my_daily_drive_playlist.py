@@ -75,6 +75,7 @@ podcast_6 = {
     "most_recent": False
 }
 included_podcasts = [podcast_1, podcast_2, podcast_3, podcast_4, podcast_5, podcast_6]
+songs_between = 5
 
 playlists = Playlists(sp)
 my_playlists = playlists.get_my_playlists()
@@ -96,30 +97,30 @@ for idx, song in enumerate(playlist_songs):
     print(idx, song["artists"][0]["name"], song["name"])
 
 playlists.add_to_playlist(playlist_id, tracks)
-day_intro_enum = getattr(DayIntros, weekday_name.upper(), None)
-if day_intro_enum is not None and len(day_intro_enum.value) > 0:
-    playlists.add_to_playlist(playlist_id, ["spotify:track:" + day_intro_enum.value], 0)
+day_intro_enum = getattr(DayIntros, weekday_name.upper(), "sd").value
+if day_intro_enum is not None and len(day_intro_enum) > 0:
+    playlists.add_to_playlist(playlist_id, ["spotify:track:" + day_intro_enum], 0)
 
+location = 1
 for idx, podcast in enumerate(included_podcasts):
     if podcast["most_recent"]:
-        if weekday_name == "Thursday" and podcast["id"] == "1qf16YCjKMzkjuxsThySIC":
-            if manual:
-                todays_shows = podcasts.get_podcast_from_past_weeks_day(podcast["id"], weekday_name)
-            else:
-                todays_shows = podcasts.get_podcast_recent_episodes(podcast["id"], 2)
-            playlists.add_to_playlist(playlist_id, ["spotify:episode:" + todays_shows[1]["id"]], (idx * 5) + idx)
-            print(podcast["name"], todays_shows[1]["name"])
-            playlists.add_to_playlist(playlist_id, ["spotify:episode:" + todays_shows[0]["id"]], (idx * 5) + idx + 1)
-            print(podcast["name"], todays_shows[0]["name"])
+        if manual:
+            todays_show = podcasts.get_podcast_from_past_weeks_day(podcast["id"], weekday_name)
         else:
-            if manual:
-                todays_show = podcasts.get_podcast_from_past_weeks_day(podcast["id"], weekday_name)
-            else:
-                todays_show = podcasts.get_podcast_recent_episodes(podcast["id"], 1)
-            playlists.add_to_playlist(playlist_id, ["spotify:episode:" + todays_show[0]["id"]], (idx * 5) + idx)
+            todays_show = podcasts.get_podcast_recent_episodes(podcast["id"], 1)
+        if todays_show[0]["duration_ms"] > 1800000:
+            chunks = int(todays_show[0]["duration_ms"] / 1800000)
+            for n in range(chunks):
+                playlists.add_to_playlist(playlist_id, ["spotify:episode:" + todays_show[0]["id"]], location)
+                print(podcast["name"], todays_show[0]["name"])
+                location += songs_between + 1
+        else:
+            playlists.add_to_playlist(playlist_id, ["spotify:episode:" + todays_show[0]["id"]], location)
             print(podcast["name"], todays_show[0]["name"])
+            location += songs_between + 1
     else:
         todays_show = podcasts.get_podcast_oldest_unplayed_episode(podcast["id"])
         if todays_show is not None:
-            playlists.add_to_playlist(playlist_id, ["spotify:episode:" + todays_show["id"]], (idx * 5) + idx)
+            playlists.add_to_playlist(playlist_id, ["spotify:episode:" + todays_show["id"]], location)
             print(podcast["name"], todays_show["name"])
+            location += songs_between + 1
