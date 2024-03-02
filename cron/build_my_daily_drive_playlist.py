@@ -14,11 +14,14 @@ with open(config_file, "r") as file:
     config_data = yaml.safe_load(file)
 
 manual = False
+debug = False
 
 if len(sys.argv) > 1:
-    manual = True
-    weekday_name = sys.argv[1]
+    debug = bool(sys.argv[1])
 
+if len(sys.argv) > 2:
+    manual = True
+    weekday_name = sys.argv[2]
 else:
     today = datetime.today()
     weekday_name = today.strftime("%A")
@@ -96,10 +99,12 @@ for idx, song in enumerate(playlist_songs):
     tracks.append("spotify:track:" + song["id"])
     print(idx, song["artists"][0]["name"], song["name"])
 
-playlists.add_to_playlist(playlist_id, tracks)
+if not debug:
+    playlists.add_to_playlist(playlist_id, tracks)
 day_intro_enum = getattr(DayIntros, weekday_name.upper(), "sd").value
 if day_intro_enum is not None and len(day_intro_enum) > 0:
-    playlists.add_to_playlist(playlist_id, ["spotify:track:" + day_intro_enum], 0)
+    if not debug:
+        playlists.add_to_playlist(playlist_id, ["spotify:track:" + day_intro_enum], 0)
 
 location = 1
 for idx, podcast in enumerate(included_podcasts):
@@ -111,16 +116,19 @@ for idx, podcast in enumerate(included_podcasts):
         if todays_show[0]["duration_ms"] > 1800000:
             chunks = int(todays_show[0]["duration_ms"] / 1800000)
             for n in range(chunks):
-                playlists.add_to_playlist(playlist_id, ["spotify:episode:" + todays_show[0]["id"]], location)
-                print(podcast["name"], todays_show[0]["name"])
+                if not debug:
+                    playlists.add_to_playlist(playlist_id, ["spotify:episode:" + todays_show[0]["id"]], location)
+                print(location, podcast["name"], todays_show[0]["name"])
                 location += songs_between + 1
         else:
-            playlists.add_to_playlist(playlist_id, ["spotify:episode:" + todays_show[0]["id"]], location)
-            print(podcast["name"], todays_show[0]["name"])
+            if not debug:
+                playlists.add_to_playlist(playlist_id, ["spotify:episode:" + todays_show[0]["id"]], location)
+            print(location, podcast["name"], todays_show[0]["name"])
             location += songs_between + 1
     else:
         todays_show = podcasts.get_podcast_oldest_unplayed_episode(podcast["id"])
         if todays_show is not None:
-            playlists.add_to_playlist(playlist_id, ["spotify:episode:" + todays_show["id"]], location)
-            print(podcast["name"], todays_show["name"])
+            if not debug:
+                playlists.add_to_playlist(playlist_id, ["spotify:episode:" + todays_show["id"]], location)
+            print(location, podcast["name"], todays_show["name"])
             location += songs_between + 1

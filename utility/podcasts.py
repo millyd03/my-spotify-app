@@ -1,6 +1,6 @@
 import calendar
 from datetime import date, timedelta
-
+from utility import util
 
 class Podcasts:
 
@@ -73,7 +73,9 @@ class Podcasts:
 
     def get_podcast_oldest_unplayed_episode(self, podcast_id, market="US"):
         all_episodes = self.get_all_podcast_episodes(podcast_id, market)
-        all_episodes.reverse()
+        if util.newest_date_first(all_episodes[0]["release_date"], all_episodes[10]["release_date"]):
+            all_episodes.reverse()
+
         found_episode = None
 
         for idx, episode in enumerate(all_episodes):
