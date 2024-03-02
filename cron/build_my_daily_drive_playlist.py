@@ -101,10 +101,14 @@ for idx, song in enumerate(playlist_songs):
 
 if not debug:
     playlists.add_to_playlist(playlist_id, tracks)
-day_intro_enum = getattr(DayIntros, weekday_name.upper(), "sd").value
-if day_intro_enum is not None and len(day_intro_enum) > 0:
+day_intro_enum = getattr(DayIntros, weekday_name.upper(), None)
+if day_intro_enum is None:
+    day_intro_track = "6S1kSZwTOv93ZmClI5tekm"
+else:
+    day_intro_track = day_intro_enum.value
+if day_intro_track is not None and len(day_intro_track) > 0:
     if not debug:
-        playlists.add_to_playlist(playlist_id, ["spotify:track:" + day_intro_enum], 0)
+        playlists.add_to_playlist(playlist_id, ["spotify:track:" + day_intro_track], 0)
 
 location = 1
 for idx, podcast in enumerate(included_podcasts):
