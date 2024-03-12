@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
 
-class Artist(BaseModel):
+class Podcast(BaseModel):
     id: str
-    name: str
+    value: str

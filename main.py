@@ -2,9 +2,11 @@ import yaml
 from fastapi import FastAPI
 
 from model.api.artist import Artist
+from model.api.create_daily_drive_playlist_request import CreateDailyDrivePlaylistRequest
 from model.api.podcast import Podcast
 from utility.artists import Artists
 from utility.auth import Auth
+from utility.playlists import Playlists
 from utility.podcasts import Podcasts
 
 # Create an instance of the MySpotifyApp class
@@ -48,6 +50,16 @@ def get_followed_podcasts():
         podcasts_response.append(Podcast(id=podcast["show"]["id"], value=podcast["show"]["name"]))
 
     return podcasts_response
+
+
+@app.post("/create_daily_drive_playlist")
+def create_daily_drive_playlist(request: CreateDailyDrivePlaylistRequest):
+    sp = connect()
+
+    playlists = Playlists(sp)
+    playlists.create_daily_drive_playlist(request.number_of_songs, request.songs_between, request.artists, request.podcasts, request.clean, request.day, request.debug)
+
+    return {"message": "Playlist created successfully!"}
 
 
 # Run the application using uvicorn (optional, can be called directly from the class)

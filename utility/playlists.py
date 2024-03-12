@@ -1,3 +1,9 @@
+from definition.day_intros import DayIntros
+from utility.podcasts import Podcasts
+from utility.songs import Songs
+from datetime import datetime
+
+
 class Playlists:
 
     def __init__(self, sp):
@@ -36,3 +42,76 @@ class Playlists:
 
     def add_to_playlist(self, playlist_id, tracks, position=None):
         self.sp.playlist_add_items(playlist_id, tracks, position)
+
+    def create_daily_drive_playlist(self, number_of_songs, songs_between, artists, selected_podcasts, clean, weekday_name="Today", debug=False):
+        manual = False
+
+        if weekday_name != "Today":
+            manual = True
+        else:
+            today = datetime.today()
+            weekday_name = today.strftime("%A")
+
+        playlists = Playlists(self.sp)
+        my_playlists = playlists.get_my_playlists()
+
+        # Start with 50 songs
+        for idx, playlist in enumerate(my_playlists):
+            if "name" in playlist and playlist["name"] == f"My {weekday_name} Drive":
+                playlists.delete_playlist(playlist["id"])
+                break
+
+        playlist_id = playlists.create_playlist(f"My {weekday_name} Drive")
+
+        songs = Songs(self.sp)
+        playlist_songs = songs.get_random_songs(artists, number_of_songs, clean)
+
+        tracks = []
+        for idx, song in enumerate(playlist_songs):
+            tracks.append("spotify:track:" + song["id"])
+            print(idx, song["artists"][0]["name"], song["name"])
+
+        if not debug:
+            playlists.add_to_playlist(playlist_id, tracks)
+        day_intro_enum = getattr(DayIntros, weekday_name.upper(), None)
+        if day_intro_enum is None:
+            day_intro_track = "6S1kSZwTOv93ZmClI5tekm"
+        else:
+            day_intro_track = day_intro_enum.value
+        if day_intro_track is not None and len(day_intro_track) > 0:
+            if not debug:
+                playlists.add_to_playlist(playlist_id, ["spotify:track:" + day_intro_track], 0)
+
+        podcasts = Podcasts(self.sp)
+
+        location = 1
+        for idx, podcast in enumerate(selected_podcasts):
+
+            if isinstance(podcast, object):
+                podcast = dict(podcast.__dict__)
+
+            if podcast["most_recent"]:
+                if manual:
+                    todays_show = podcasts.get_podcast_from_past_weeks_day(podcast["id"], weekday_name)
+                else:
+                    todays_show = podcasts.get_podcast_recent_episodes(podcast["id"], 1)
+                if todays_show[0]["duration_ms"] > 1800000:
+                    chunks = int(todays_show[0]["duration_ms"] / 1800000)
+                    for n in range(chunks):
+                        if not debug:
+                            playlists.add_to_playlist(playlist_id, ["spotify:episode:" + todays_show[0]["id"]],
+                                                      location)
+                        print(location, podcast["name"], todays_show[0]["name"])
+                        location += songs_between + 1
+                else:
+                    if not debug:
+                        playlists.add_to_playlist(playlist_id, ["spotify:episode:" + todays_show[0]["id"]], location)
+                    print(location, podcast["name"], todays_show[0]["name"])
+                    location += songs_between + 1
+            else:
+                todays_show = podcasts.get_podcast_oldest_unplayed_episode(podcast["id"])
+                if todays_show is not None:
+                    if not debug:
+                        playlists.add_to_playlist(playlist_id, ["spotify:episode:" + todays_show["id"]], location)
+                    print(location, podcast["name"], todays_show["name"])
+                    location += songs_between + 1

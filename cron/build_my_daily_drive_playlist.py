@@ -26,10 +26,6 @@ else:
     today = datetime.today()
     weekday_name = today.strftime("%A")
 
-playlist_id = None
-current_time = datetime.now()
-current_hour = current_time.hour
-
 auth = Auth(config_data["client_id"], config_data["client_secret"], config_data["redirect_uri"])
 sp = auth.get_spotify_connection_with_authorization_code()
 

@@ -36,6 +36,10 @@ class Songs:
 
         for i in range(n):
             random_artist = get_random_artist(artists)
+
+            if isinstance(random_artist, object):
+                random_artist = dict(random_artist.__dict__)
+
             artists_top_songs = self.get_artists_top_songs(random_artist["id"])
             selected_song = get_random_song(artists_top_songs, random_artist["name"])
 
