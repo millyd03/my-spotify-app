@@ -74,7 +74,7 @@ podcast_6 = {
     "most_recent": False
 }
 included_podcasts = [podcast_1, podcast_2, podcast_3, podcast_4, podcast_5, podcast_6]
-songs_between = 5
+songs_between = 6
 
 playlists = Playlists(sp)
 my_playlists = playlists.get_my_playlists()

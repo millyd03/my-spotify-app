@@ -1,3 +1,4 @@
+from model.api.create_daily_drive_playlist_request import SelectedArtist
 from utility import util
 
 
@@ -37,7 +38,7 @@ class Songs:
         for i in range(n):
             random_artist = get_random_artist(artists)
 
-            if isinstance(random_artist, object):
+            if isinstance(random_artist, SelectedArtist):
                 random_artist = dict(random_artist.__dict__)
 
             artists_top_songs = self.get_artists_top_songs(random_artist["id"])

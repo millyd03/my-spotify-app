@@ -1,4 +1,5 @@
 from definition.day_intros import DayIntros
+from model.api.create_daily_drive_playlist_request import SelectedPodcast
 from utility.podcasts import Podcasts
 from utility.songs import Songs
 from datetime import datetime
@@ -87,7 +88,7 @@ class Playlists:
         location = 1
         for idx, podcast in enumerate(selected_podcasts):
 
-            if isinstance(podcast, object):
+            if isinstance(podcast, SelectedPodcast):
                 podcast = dict(podcast.__dict__)
 
             if podcast["most_recent"]:
