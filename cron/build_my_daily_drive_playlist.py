@@ -31,7 +31,7 @@ sp = auth.get_spotify_connection_with_authorization_code()
 
 user_info = sp.current_user()
 print(f"Hello, {user_info['display_name']}!")
-print(f"Here's your updated playlist for {weekday_name}:")
+print(f"Here's your playlist for {weekday_name}:")
 
 artists = Artists(sp)
 followed_artists = artists.get_my_followed_artists()
@@ -88,7 +88,7 @@ for idx, playlist in enumerate(my_playlists):
 playlist_id = playlists.create_playlist(f"My {weekday_name} Drive")
 
 songs = Songs(sp)
-playlist_songs = songs.get_random_songs(followed_artists, 50)
+playlist_songs = songs.get_random_songs(followed_artists, 75)
 
 tracks = []
 for idx, song in enumerate(playlist_songs):

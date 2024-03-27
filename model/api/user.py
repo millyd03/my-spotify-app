@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
 
-class Podcast(BaseModel):
+class User(BaseModel):
     id: str
     name: str
