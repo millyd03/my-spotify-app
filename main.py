@@ -14,7 +14,7 @@ from utility.podcasts import Podcasts
 app = FastAPI()
 
 
-def connect(client_id=None, client_secret=None):
+def connect(client_id=None, client_secret=None, redirect_uri="http://localhost:8888/callback"):
     if client_id is None:
         config_file = "config/config.yml"
 
@@ -23,7 +23,7 @@ def connect(client_id=None, client_secret=None):
         client_id = config_data["client_id"]
         client_secret = config_data["client_secret"]
 
-    auth = Auth(client_id, client_secret, config_data["redirect_uri"])
+    auth = Auth(client_id, client_secret, redirect_uri)
     return auth.get_spotify_connection_with_authorization_code()
 
 
@@ -34,8 +34,9 @@ async def root(self):
 
 @app.get("/artists")
 def get_followed_artists(client_id: str = Header(None, description="Spotify Client ID"),
-                         client_secret: str = Header(None, description="Spotify Client Secret")):
-    sp = connect(client_id, client_secret)
+                         client_secret: str = Header(None, description="Spotify Client Secret"),
+                         redirect_uri: str = Header("http://localhost:8888/callback", description="Spotify Redirect URI")):
+    sp = connect(client_id, client_secret, redirect_uri)
     artists_response = []
     artists = Artists(sp)
     followed_artists = artists.get_my_followed_artists()
@@ -47,8 +48,9 @@ def get_followed_artists(client_id: str = Header(None, description="Spotify Clie
 
 @app.get("/podcasts")
 def get_followed_podcasts(client_id: str = Header(None, description="Spotify Client ID"),
-                          client_secret: str = Header(None, description="Spotify Client Secret")):
-    sp = connect(client_id, client_secret)
+                          client_secret: str = Header(None, description="Spotify Client Secret"),
+                          redirect_uri: str = Header("http://localhost:8888/callback", description="Spotify Redirect URI")):
+    sp = connect(client_id, client_secret, redirect_uri)
     podcasts_response = []
     podcasts = Podcasts(sp)
     followed_podcasts = podcasts.get_my_followed_podcasts()
@@ -61,8 +63,9 @@ def get_followed_podcasts(client_id: str = Header(None, description="Spotify Cli
 @app.post("/create_daily_drive_playlist")
 def create_daily_drive_playlist(request: CreateDailyDrivePlaylistRequest,
                                 client_id: str = Header(None, description="Spotify Client ID"),
-                                client_secret: str = Header(None, description="Spotify Client Secret")):
-    sp = connect(client_id, client_secret)
+                                client_secret: str = Header(None, description="Spotify Client Secret"),
+                                redirect_uri: str = Header("http://localhost:8888/callback", description="Spotify Redirect URI")):
+    sp = connect(client_id, client_secret, redirect_uri)
 
     playlists = Playlists(sp)
     playlists.create_daily_drive_playlist(request.number_of_songs, request.songs_between, request.artists,
@@ -73,8 +76,9 @@ def create_daily_drive_playlist(request: CreateDailyDrivePlaylistRequest,
 
 @app.get("/user")
 def get_user(client_id: str = Header(None, description="Spotify Client ID"),
-             client_secret: str = Header(None, description="Spotify Client Secret")):
-    sp = connect(client_id, client_secret)
+             client_secret: str = Header(None, description="Spotify Client Secret"),
+             redirect_uri: str = Header("http://localhost:8888/callback", description="Spotify Redirect URI")):
+    sp = connect(client_id, client_secret, redirect_uri)
 
     user_info = sp.current_user()
     user = User(id=user_info["id"], name=user_info["display_name"])

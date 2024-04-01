@@ -1,3 +1,6 @@
+from collections import defaultdict
+
+
 class Artists:
 
     def __init__(self, sp):
@@ -25,3 +28,15 @@ class Artists:
 
     def get_artist(self, artist_id):
         return self.sp.artist(artist_id)
+
+    def get_followed_genres(self, followed_artists=None):
+        if followed_artists is None:
+            followed_artists = self.get_my_followed_artists()
+
+        artist_genres = defaultdict(list)
+        for artist in followed_artists:  # Replace with your list of followed artist IDs
+            genres = artist["genres"]
+            for genre in genres:
+                artist_genres[genre].append(artist["name"])
+
+        return artist_genres

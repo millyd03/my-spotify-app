@@ -15,3 +15,9 @@ followed_artists = artists.get_my_followed_artists()
 
 for idx, artist in enumerate(followed_artists):
     print(artist["id"], artist["name"])
+
+artist_genres = artists.get_followed_genres()
+
+# Print the unique genres and their counts
+for genre, genre_artists in artist_genres.items():
+    print(f"Genre: {genre}, Count: {len(genre_artists)}")

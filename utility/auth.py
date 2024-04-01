@@ -1,12 +1,15 @@
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth
 
+from utility.user_cache_handler import UserCacheHandler
+
 
 class Auth:
     def __init__(self, client_id, client_secret, redirect_uri=""):
         self.client_id = client_id
         self.client_secret = client_secret
         self.redirect_uri = redirect_uri
+        self.cache_path = "../cache/user_tokens"
 
     def get_spotify_connection_with_credentials(self):
         """
@@ -24,7 +27,8 @@ class Auth:
             raise ValueError("Both client_id and client_secret are required.")
 
         try:
-            auth_manager = SpotifyClientCredentials(self.client_id, self.client_secret)
+            auth_manager = SpotifyClientCredentials(self.client_id, self.client_secret,
+                                                    cache_handler=UserCacheHandler(self.cache_path, self.client_id))
             sp = spotipy.Spotify(auth_manager=auth_manager)
             return sp
         except spotipy.SpotifyException as e:
@@ -47,7 +51,8 @@ class Auth:
         auth_manager = SpotifyOAuth(client_id=self.client_id,
                                     client_secret=self.client_secret,
                                     redirect_uri=self.redirect_uri,
-                                    scope="user-read-private user-read-email user-library-read user-follow-read playlist-modify-public playlist-modify-private user-read-playback-position")
+                                    scope="user-read-private user-read-email user-library-read user-follow-read playlist-modify-public playlist-modify-private user-read-playback-position",
+                                    cache_handler=UserCacheHandler(self.cache_path, self.client_id))
 
         try:
             sp = spotipy.Spotify(auth_manager=auth_manager)
