@@ -65,12 +65,15 @@ class Playlists:
         playlist_id = playlists.create_playlist(f"My {weekday_name} Drive")
 
         songs = Songs(self.sp)
-        playlist_songs = songs.get_random_songs(artists, number_of_songs, clean)
+        playlist_songs = songs.get_random_songs(artists, number_of_songs, clean, artist_counts={})
 
         tracks = []
-        for idx, song in enumerate(playlist_songs):
-            tracks.append("spotify:track:" + song["id"])
-            print(idx, song["artists"][0]["name"], song["name"])
+        idx = 0
+        for song in playlist_songs:
+            if song is not None:
+                tracks.append("spotify:track:" + song["id"])
+                print(idx, song["artists"][0]["name"], song["name"])
+                idx += 1
 
         if not debug:
             playlists.add_to_playlist(playlist_id, tracks)
