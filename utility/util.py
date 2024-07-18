@@ -80,3 +80,34 @@ def newest_date_first(date1_str, date2_str, format_string="%Y-%m-%d"):
         return True
     elif date2 >= date1:
         return False
+
+
+def check_is_between_dates(check_date_str, start_date_str, end_date_str=None):
+    """Checks if a release date (string) is between two dates (datetime objects).
+
+  Args:
+      check_date_str: A string representing the release date in ISO 8601 format (YYYY-MM-DD).
+      start_date_str: A string representing the start date of the range (inclusive).
+      end_date_str: A string representing the end date of the range (inclusive).
+
+  Returns:
+      True if the release date is between the start and end date (inclusive), False otherwise.
+  """
+
+    start_date = datetime.fromisoformat(start_date_str)
+
+    if end_date_str is None:
+        end_date = datetime.today()
+    else:
+        end_date = datetime.fromisoformat(end_date_str)
+
+    # Check if the string length is 4 (likely a year)
+    if len(check_date_str) == 4:
+        # Use strptime with format string for year only (%Y)
+        release_date = datetime.strptime(check_date_str, "%Y")
+    else:
+        # Otherwise, assume full ISO format and use fromisoformat
+        release_date = datetime.fromisoformat(check_date_str)
+
+    # Check if the release date is within the start and end date (inclusive)
+    return start_date <= release_date <= end_date
