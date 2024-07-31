@@ -131,7 +131,10 @@ elif weekday_name.upper() == "THURSDAY":
 elif weekday_name.upper() == "FRIDAY":
     song_filter = SongFilters.FRESH
 
-print(f"Here's your playlist for {song_filter.value} {weekday_name}:")
+song_filter_string = ""
+if song_filter is not None:
+    song_filter_string = song_filter.value + " "
+print(f"Here's your playlist for {song_filter_string}{weekday_name}:")
 
 songs = Songs(sp)
 playlist_songs = songs.get_random_songs(followed_artists, 50, cache_file, True, {}, favorite_artists, song_filter)
