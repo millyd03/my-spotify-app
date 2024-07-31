@@ -44,7 +44,7 @@ class Playlists:
     def add_to_playlist(self, playlist_id, tracks, position=None):
         self.sp.playlist_add_items(playlist_id, tracks, position)
 
-    def create_daily_drive_playlist(self, number_of_songs, songs_between, artists, selected_podcasts, clean, weekday_name="Today", debug=False):
+    def create_daily_drive_playlist(self, number_of_songs, songs_between, artists, selected_podcasts, cache_file, clean=True, weekday_name="Today", debug=False):
         manual = False
 
         if weekday_name != "Today":
@@ -65,7 +65,7 @@ class Playlists:
         playlist_id = playlists.create_playlist(f"My {weekday_name} Drive")
 
         songs = Songs(self.sp)
-        playlist_songs = songs.get_random_songs(artists, number_of_songs, clean, artist_counts={})
+        playlist_songs = songs.get_random_songs(artists, number_of_songs, cache_file, clean, artist_counts={})
 
         tracks = []
         idx = 0

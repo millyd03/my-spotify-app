@@ -66,10 +66,11 @@ def create_daily_drive_playlist(request: CreateDailyDrivePlaylistRequest,
                                 client_secret: str = Header(None, description="Spotify Client Secret"),
                                 redirect_uri: str = Header("http://localhost:8888/callback", description="Spotify Redirect URI")):
     sp = connect(client_id, client_secret, redirect_uri)
+    cache_file = "../cache/artist_tracks_cache"
 
     playlists = Playlists(sp)
     playlists.create_daily_drive_playlist(request.number_of_songs, request.songs_between, request.artists,
-                                          request.podcasts, request.clean, request.day, request.debug)
+                                          request.podcasts, cache_file, request.clean, request.day, request.debug)
 
     return {"message": "Playlist created successfully!"}
 

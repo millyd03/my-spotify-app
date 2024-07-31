@@ -14,6 +14,7 @@ def connect_with_config():
     auth = Auth(config_data["client_id"], config_data["client_secret"], config_data["redirect_uri"])
     return auth.get_spotify_connection_with_authorization_code()
 
+
 class Auth:
     def __init__(self, client_id, client_secret, redirect_uri=""):
         self.client_id = client_id

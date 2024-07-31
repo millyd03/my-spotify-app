@@ -14,6 +14,8 @@ sp = auth.get_spotify_connection_with_authorization_code()
 user_info = sp.current_user()
 print(user_info["id"], user_info["display_name"])
 
+cache_file = "../cache/artist_tracks_cache"
+
 results = sp.search(q='weezer', limit=20)
 for idx, track in enumerate(results['tracks']['items']):
     print(idx, track['name'])
@@ -26,16 +28,16 @@ for idx, top_track in enumerate(top_tracks['tracks']):
     print(idx, top_track)
 
 print("\nAll Songs:")
-all_tracks = songs.get_all_artists_songs('Weezer')
+all_tracks = songs.get_all_artists_songs('Weezer', cache_file)
 for idx, track in enumerate(all_tracks):
     print(idx, track)
 
 print("\nFresh Songs:")
-freshest_tracks = songs.get_top_new_songs('Weezer')
+freshest_tracks = songs.get_top_new_songs('Weezer', cache_file)
 for idx, fresh_track in enumerate(freshest_tracks):
     print(idx, fresh_track['name'])
 
 print("\nOld Songs:")
-oldest_tracks = songs.get_top_old_songs('Weezer')
+oldest_tracks = songs.get_top_old_songs('Weezer', cache_file)
 for idx, old_track in enumerate(oldest_tracks):
     print(idx, old_track['name'])

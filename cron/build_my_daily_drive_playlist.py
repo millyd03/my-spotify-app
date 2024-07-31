@@ -6,6 +6,7 @@ from utility.podcasts import Podcasts
 from utility.playlists import Playlists
 from definition.day_intros import DayIntros
 from datetime import datetime
+from utility.spotipy_facade import current_user
 import yaml
 import sys
 
@@ -30,7 +31,7 @@ else:
 auth = Auth(config_data["client_id"], config_data["client_secret"], config_data["redirect_uri"])
 sp = auth.get_spotify_connection_with_authorization_code()
 
-user_info = sp.current_user()
+user_info = current_user(sp)
 print(f"Hello, {user_info['display_name']}!")
 
 artists = Artists(sp)
@@ -91,8 +92,25 @@ podcast_6 = {
     "name": "Hello From the Magic Tavern",
     "most_recent": False
 }
-included_podcasts = [podcast_1, podcast_2, podcast_3, podcast_4, podcast_5, podcast_6]
+podcast_7 = {
+    "id": "7nqJajzyZo3gdisGk7XhQx",
+    "backup": {
+        "id": "53dHyhzazFrmPhwuambyuM",
+        "backup": {
+            "id": "0sxpFsg449GC8TPtrRVCUW",
+            "backup": None,
+            "name": "The Weekly Show with Jon Stewart",
+            "most_recent": False
+        },
+        "name": "The Daily Show: Ears Edition",
+        "most_recent": False
+    },
+    "name": "Real Time with Bill Maher",
+    "most_recent": True
+}
+included_podcasts = [podcast_1, podcast_2, podcast_3, podcast_4, podcast_5, podcast_6, podcast_7]
 songs_between = 3
+cache_file = "../cache/artist_tracks_cache"
 
 playlists = Playlists(sp)
 my_playlists = playlists.get_my_playlists()
@@ -110,13 +128,13 @@ if weekday_name.upper() == "WEDNESDAY":
     song_filter = SongFilters.WILDCARD
 elif weekday_name.upper() == "THURSDAY":
     song_filter = SongFilters.THROWBACK
-#elif weekday_name.upper() == "FRIDAY":
-#    song_filter = SongFilters.FRESH
+elif weekday_name.upper() == "FRIDAY":
+    song_filter = SongFilters.FRESH
 
 print(f"Here's your playlist for {song_filter.value} {weekday_name}:")
 
 songs = Songs(sp)
-playlist_songs = songs.get_random_songs(followed_artists, 50, True, {}, favorite_artists, song_filter)
+playlist_songs = songs.get_random_songs(followed_artists, 50, cache_file, True, {}, favorite_artists, song_filter)
 
 tracks = []
 idx = 0

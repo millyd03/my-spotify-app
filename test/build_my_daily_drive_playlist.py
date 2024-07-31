@@ -57,5 +57,7 @@ podcast_6 = {
 }
 included_podcasts = [podcast_1, podcast_2, podcast_3, podcast_4, podcast_5, podcast_6]
 
+cache_file = "../cache/artist_tracks_cache"
+
 playlists = Playlists(sp)
-playlists.create_daily_drive_playlist(50, 5, selected_artists, included_podcasts, False)
+playlists.create_daily_drive_playlist(50, 5, selected_artists, included_podcasts, cache_file, False)

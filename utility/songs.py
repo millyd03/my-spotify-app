@@ -1,3 +1,6 @@
+import json
+import os
+
 from definition.artist_tiers import ArtistTiers
 from definition.song_filters import SongFilters
 from model.api.create_daily_drive_playlist_request import SelectedArtist
@@ -5,6 +8,8 @@ from utility import util
 from utility.artists import Artists
 from utility.auth import connect_with_config
 from utility.util import check_is_between_dates
+from utility.spotipy_facade import search
+from utility.spotipy_facade import artist_top_tracks
 
 
 def get_random_song(songs, artist, clean, artist_counts=None, attempts=0, favorite_artists=None):
@@ -84,13 +89,14 @@ class Songs:
         self.sp = sp
 
     def get_artists_top_songs(self, artist_id):
-        return self.sp.artist_top_tracks(artist_id)["tracks"]
+        return artist_top_tracks(self.sp, artist_id)["tracks"]
 
-    def get_all_artists_songs(self, artist_name, limit=50, start_date=None, end_date=None):
+    def get_all_artists_songs(self, artist_name, cache_file, limit=50, start_date=None, end_date=None):
         """Gets all songs by an artist sorted by release date (ascending order).
 
         Args:
             artist_name: The name of the artist.
+            cache_file:
             limit: The number of results per page (default: 50, maximum: 50).
             start_date:
             end_date:
@@ -99,25 +105,47 @@ class Songs:
             A list of dictionaries representing all songs sorted by release date with keys 'name', 'release_date'.
         """
 
-        # Initialize variables
-        all_songs = []
-        offset = 0
+        cache_key = f"all_artist_tracks:{artist_name}"
 
-        # Loop to retrieve results from multiple pages
-        while True:
-            # Perform search with limit and offset
-            results = self.sp.search(q=artist_name, limit=limit, offset=offset)
+        # Check if the data is in the cache
+        if os.path.exists(cache_file):
+            # Load the cache from the file
+            with open(cache_file, 'r') as f:
+                cache = json.load(f)
+        else:
+            cache = {}
 
-            # Extract artists from the current page
-            songs = results['tracks']['items']
-            all_songs.extend(songs)
+        # Check if the data is in the cache
+        if cache is not {} and cache_key in cache:
+            print("Cache hit! " + cache_key)
+            all_songs = cache[cache_key]
+        else:
+            # Initialize variables
+            all_songs = []
+            offset = 0
 
-            # Check for next page (indicated by 'next' key in response)
-            if not results['tracks']['next']:
-                break
+            # Loop to retrieve results from multiple pages
+            while True:
+                # Perform search with limit and offset
+                results = search(self.sp, q=artist_name, limit=limit, offset=offset)
 
-            # Update offset for the next page
-            offset += limit
+                # Extract artists from the current page
+                songs = results['tracks']['items']
+                all_songs.extend(songs)
+
+                # Check for next page (indicated by 'next' key in response)
+                if not results['tracks']['next']:
+                    break
+
+                # Update offset for the next page
+                offset += limit
+
+            # Cache the results
+            cache[cache_key] = all_songs
+
+            # Save the cache to the file
+            with open(cache_file, 'w') as f:
+                json.dump(cache, f)
 
             # Loop through the list with index
         for index in reversed(range(len(all_songs))):
@@ -135,7 +163,27 @@ class Songs:
         # Return the sorted list of songs
         return all_songs
 
-    def get_top_old_songs(self, artist_name):
+    def get_top_old_songs(self, artist_name, cache_file):
+        """Gets the top 20 most popular songs by an artist released in the last 5 years.
+
+        Args:
+            artist_name: The name of the artist.
+            cache_file:
+
+        Returns:
+            A list of dictionaries representing the top 20 songs with keys 'name', 'release_date', and 'popularity'.
+        """
+
+        # Get all artist's releases
+        filtered_songs = self.get_all_artists_songs(artist_name, cache_file, start_date='1990-01-01', end_date='2010-01-01')
+
+        # Sort songs by popularity (descending order)
+        filtered_songs.sort(key=lambda song: song['popularity'], reverse=True)
+
+        # Return the top 20 songs
+        return filtered_songs[:20]
+
+    def get_top_new_songs(self, artist_name, cache):
         """Gets the top 20 most popular songs by an artist released in the last 5 years.
 
         Args:
@@ -146,7 +194,7 @@ class Songs:
         """
 
         # Get all artist's releases
-        filtered_songs = self.get_all_artists_songs(artist_name, start_date='1990-01-01', end_date='2010-01-01')
+        filtered_songs = self.get_all_artists_songs(artist_name, cache, start_date='2020-01-01', end_date='2025-01-01')
 
         # Sort songs by popularity (descending order)
         filtered_songs.sort(key=lambda song: song['popularity'], reverse=True)
@@ -154,26 +202,7 @@ class Songs:
         # Return the top 20 songs
         return filtered_songs[:20]
 
-    def get_top_new_songs(self, artist_name):
-        """Gets the top 20 most popular songs by an artist released in the last 5 years.
-
-        Args:
-            artist_name: The name of the artist.
-
-        Returns:
-            A list of dictionaries representing the top 20 songs with keys 'name', 'release_date', and 'popularity'.
-        """
-
-        # Get all artist's releases
-        filtered_songs = self.get_all_artists_songs(artist_name, start_date='2020-01-01', end_date='2025-01-01')
-
-        # Sort songs by popularity (descending order)
-        filtered_songs.sort(key=lambda song: song['popularity'], reverse=True)
-
-        # Return the top 20 songs
-        return filtered_songs[:20]
-
-    def get_random_songs(self, artists, n, clean=True, artist_counts=None, favorite_artists=None, song_filter=None):
+    def get_random_songs(self, artists, n, cache_file, clean=True, artist_counts=None, favorite_artists=None, song_filter=None):
         random_songs = []
 
         for i in range(n):
@@ -183,11 +212,11 @@ class Songs:
                 random_artist = dict(random_artist.__dict__)
 
             if song_filter is SongFilters.WILDCARD:
-                song_list = self.get_all_artists_songs(random_artist["name"])
+                song_list = self.get_all_artists_songs(random_artist["name"], cache_file)
             elif song_filter is SongFilters.THROWBACK:
-                song_list = self.get_top_old_songs(random_artist["name"])
+                song_list = self.get_top_old_songs(random_artist["name"], cache_file)
             elif song_filter is SongFilters.FRESH:
-                song_list = self.get_top_new_songs(random_artist["name"])
+                song_list = self.get_top_new_songs(random_artist["name"], cache_file)
             else:
                 song_list = self.get_artists_top_songs(random_artist["id"])
             selected_song = get_random_song(song_list, random_artist, clean, artist_counts, favorite_artists=favorite_artists)

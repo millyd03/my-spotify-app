@@ -102,6 +102,8 @@ def check_is_between_dates(check_date_str, start_date_str, end_date_str=None):
         end_date = datetime.fromisoformat(end_date_str)
 
     # Check if the string length is 4 (likely a year)
+    if check_date_str == '0' or check_date_str == '0000':
+        return False
     if len(check_date_str) == 4:
         # Use strptime with format string for year only (%Y)
         release_date = datetime.strptime(check_date_str, "%Y")
