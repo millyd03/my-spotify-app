@@ -75,16 +75,31 @@ podcast_3 = {
     "most_recent": True
 }
 podcast_4 = {
-    "id": "0KxdEdeY2Wb3zr28dMlQva",
-    "backup": None,
-    "name": "The Journal",
+    "id": "7nqJajzyZo3gdisGk7XhQx",
+    "backup": {
+        "id": "53dHyhzazFrmPhwuambyuM",
+        "backup": {
+            "id": "0sxpFsg449GC8TPtrRVCUW",
+            "backup": None,
+            "name": "The Weekly Show with Jon Stewart",
+            "most_recent": True
+        },
+        "name": "The Daily Show: Ears Edition",
+        "most_recent": True
+    },
+    "name": "Real Time with Bill Maher",
     "most_recent": True
 }
 podcast_5 = {
     "id": "5PGmCKE1KzIHMN9kvKOpC8",
-    "backup": None,
+    "backup": {
+            "id": "5PGmCKE1KzIHMN9kvKOpC8",
+            "backup": None,
+            "name": "The Council of Trent Podcast",
+            "most_recent": False
+    },
     "name": "The Council of Trent Podcast",
-    "most_recent": False
+    "most_recent": True
 }
 podcast_6 = {
     "id": "0FGOz929il130iXEwkInBa",
@@ -93,21 +108,12 @@ podcast_6 = {
     "most_recent": False
 }
 podcast_7 = {
-    "id": "7nqJajzyZo3gdisGk7XhQx",
-    "backup": {
-        "id": "53dHyhzazFrmPhwuambyuM",
-        "backup": {
-            "id": "0sxpFsg449GC8TPtrRVCUW",
-            "backup": None,
-            "name": "The Weekly Show with Jon Stewart",
-            "most_recent": False
-        },
-        "name": "The Daily Show: Ears Edition",
-        "most_recent": False
-    },
-    "name": "Real Time with Bill Maher",
+    "id": "0KxdEdeY2Wb3zr28dMlQva",
+    "backup": None,
+    "name": "The Journal",
     "most_recent": True
 }
+
 included_podcasts = [podcast_1, podcast_2, podcast_3, podcast_4, podcast_5, podcast_6, podcast_7]
 songs_between = 3
 cache_file = "../cache/artist_tracks_cache"
@@ -124,12 +130,13 @@ for idx, playlist in enumerate(my_playlists):
 playlist_id = playlists.create_playlist(f"My {weekday_name} Drive")
 
 song_filter = None
-if weekday_name.upper() == "WEDNESDAY":
-    song_filter = SongFilters.WILDCARD
-elif weekday_name.upper() == "THURSDAY":
-    song_filter = SongFilters.THROWBACK
-elif weekday_name.upper() == "FRIDAY":
-    song_filter = SongFilters.FRESH
+#if weekday_name.upper() == "WEDNESDAY":
+#    song_filter = SongFilters.WILDCARD
+#elif weekday_name.upper() == "THURSDAY":
+#    song_filter = SongFilters.THROWBACK
+#elif weekday_name.upper() == "FRIDAY":
+#    song_filter = SongFilters.FRESH
+song_filter = SongFilters.CHRISTMAS
 
 song_filter_string = ""
 if song_filter is not None:
@@ -137,7 +144,8 @@ if song_filter is not None:
 print(f"Here's your playlist for {song_filter_string}{weekday_name}:")
 
 songs = Songs(sp)
-playlist_songs = songs.get_random_songs(followed_artists, 50, cache_file, True, {}, favorite_artists, song_filter)
+#playlist_songs = songs.get_random_songs(followed_artists, 50, cache_file, True, {}, favorite_artists, song_filter)
+playlist_songs = songs.get_random_songs(followed_artists, 50, cache_file, True, None, favorite_artists, song_filter)
 
 tracks = []
 idx = 0
@@ -165,22 +173,28 @@ for idx, podcast in enumerate(included_podcasts):
         if manual:
             todays_show = podcasts.get_podcast_from_past_weeks_day(podcast["id"], weekday_name)
         else:
-            todays_show = podcasts.get_podcast_recent_episodes(podcast["id"], 1)
-        if todays_show[0]["duration_ms"] > 5000000:
-            chunks = int(todays_show[0]["duration_ms"] / 1800000) + 1
-            for n in range(chunks):
-                if not debug:
-                    playlists.add_to_playlist(playlist_id, ["spotify:episode:" + todays_show[0]["id"]], location)
-                print(location, podcast["name"], todays_show[0]["name"])
-                location += songs_between + 1
-        else:
-            if not debug:
-                playlists.add_to_playlist(playlist_id, ["spotify:episode:" + todays_show[0]["id"]], location)
-            print(location, podcast["name"], todays_show[0]["name"])
-            location += songs_between + 1
+            todays_show = podcasts.get_podcast_most_recent_unplayed_episode(podcast["id"])
     else:
         todays_show = podcasts.get_podcast_oldest_unplayed_episode(podcast["id"])
-        if todays_show is not None:
+
+    if todays_show is None:
+        if podcast["backup"]["most_recent"]:
+            if manual:
+                todays_show = podcasts.get_podcast_from_past_weeks_day(podcast["backup"]["id"], weekday_name)
+            else:
+                todays_show = podcasts.get_podcast_most_recent_unplayed_episode(podcast["backup"]["id"])
+        else:
+            todays_show = podcasts.get_podcast_oldest_unplayed_episode(podcast["backup"]["id"])
+
+    if todays_show is not None:
+        if todays_show["duration_ms"] > 5000000:
+            chunks = int(todays_show["duration_ms"] / 1800000) + 1
+            for n in range(chunks):
+                if not debug:
+                    playlists.add_to_playlist(playlist_id, ["spotify:episode:" + todays_show["id"]], location)
+                print(location, podcast["name"], todays_show["name"])
+                location += songs_between + 1
+        else:
             if not debug:
                 playlists.add_to_playlist(playlist_id, ["spotify:episode:" + todays_show["id"]], location)
             print(location, podcast["name"], todays_show["name"])

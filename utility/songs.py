@@ -202,6 +202,50 @@ class Songs:
         # Return the top 20 songs
         return filtered_songs[:20]
 
+    def get_random_song_from_playlist(self, playlist_id, clean, attempts=0):
+        """
+        Fetches the list of songs in a Spotify playlist.
+
+        Args:
+          playlist_id: The ID of the Spotify playlist.
+
+        Returns:
+          A list of song names from the playlist.
+        """
+
+        results = self.sp.playlist_tracks(playlist_id)
+        tracks = results['items']
+        songs = []
+        while results['next']:
+            results = self.sp.next(results)
+            tracks.extend(results['items'])
+
+        for track in tracks:
+            song = track["track"]
+            songs.append(song)
+
+        max_val = len(songs)
+
+        if max_val <= 0:
+            print("Bad playlist:", playlist_id, max_val)
+            return None
+
+        random_song_idx = util.get_random_int(0, max_val - 1)
+
+        selected_song = songs[random_song_idx]
+
+        if selected_song["is_local"]:
+            return self.get_random_song_from_playlist(playlist_id, False)
+
+        if selected_song["explicit"] and clean:
+            if attempts >= 5:
+                return self.get_random_song_from_playlist(playlist_id, False)
+            else:
+                return self.get_random_song_from_playlist(playlist_id, clean, attempts=attempts + 1)
+        else:
+            return selected_song
+
+
     def get_random_songs(self, artists, n, cache_file, clean=True, artist_counts=None, favorite_artists=None, song_filter=None):
         random_songs = []
 
@@ -211,15 +255,20 @@ class Songs:
             if isinstance(random_artist, SelectedArtist):
                 random_artist = dict(random_artist.__dict__)
 
-            if song_filter is SongFilters.WILDCARD:
-                song_list = self.get_all_artists_songs(random_artist["name"], cache_file)
-            elif song_filter is SongFilters.THROWBACK:
-                song_list = self.get_top_old_songs(random_artist["name"], cache_file)
-            elif song_filter is SongFilters.FRESH:
-                song_list = self.get_top_new_songs(random_artist["name"], cache_file)
+            if song_filter is SongFilters.CHRISTMAS:
+                selected_song = self.get_random_song_from_playlist('1PTd2wTtXQLeKtX3Zekuos', clean)
+            elif song_filter is SongFilters.TACNO:
+                selected_song = self.get_random_song_from_playlist('1iOmFONzHZlqggYum8UHKH', clean)
             else:
-                song_list = self.get_artists_top_songs(random_artist["id"])
-            selected_song = get_random_song(song_list, random_artist, clean, artist_counts, favorite_artists=favorite_artists)
+                if song_filter is SongFilters.WILDCARD:
+                    song_list = self.get_all_artists_songs(random_artist["name"], cache_file)
+                elif song_filter is SongFilters.THROWBACK:
+                    song_list = self.get_top_old_songs(random_artist["name"], cache_file)
+                elif song_filter is SongFilters.FRESH:
+                    song_list = self.get_top_new_songs(random_artist["name"], cache_file)
+                else:
+                    song_list = self.get_artists_top_songs(random_artist["id"])
+                selected_song = get_random_song(song_list, random_artist, clean, artist_counts, favorite_artists=favorite_artists)
 
             emergency_break = 0
             while selected_song is None:
@@ -240,6 +289,7 @@ class Songs:
             if artist_counts is not None:
                 artist_count = artist_counts.get(random_artist["id"], 0)
                 artist_counts[random_artist["id"]] = artist_count + 1
+
             random_songs.append(selected_song)
 
         return random_songs
